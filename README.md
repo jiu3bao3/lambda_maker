@@ -23,9 +23,9 @@ AWSのLambdaをPythonで作成する
 |aws.lambda.override | 同名のLambdaが存在した場合に上書きするか | True / False |
 |aws.apigateway.rest_api_gateway_name | rest_api_gatewayの名前 | "mock" | 
 |aws.apigateway.http_method | 対応するHTTPメソッド | ANY/POST/GET etc. |
-|aws.apigateway.type | | AWS_PROXY" |
-|aws.apigateway.integration_http_method | | "ANY" |
-|aws.apigateway.stage_name | | |
+|aws.apigateway.type | [API Gateway API 統合タイプ](https://docs.aws.amazon.com/ja_jp/apigateway/latest/developerguide/api-gateway-api-integration-types.html)参照 | "AWS_PROXY" |
+|aws.apigateway.integration_http_method | | "ANY"  |
+|aws.apigateway.stage_name | デプロイ先ステージ名 | "test"|
 
 注１）LocalStackではフォーマットしかチェックされない様子
 
