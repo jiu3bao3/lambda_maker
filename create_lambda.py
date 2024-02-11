@@ -88,26 +88,26 @@ class APIGatewayCreater(AWSClient):
   """
   SERVICE = "apigateway"
   def create_api_gateway(self, function_arn):
-    rest_api_gateway_id = self.make_rest_api_gateway(self.config["aws"]["apigateway"]["rest_api_gateway_name"])
-    root_resource_id = self.get_root_resource(rest_api_gateway_id)
-    sub_resource_id = self.create_sub_resource(rest_api_gateway_id, root_resource_id)
-    self.put_method(rest_api_gateway_id, sub_resource_id)
-    self.put_integration(rest_api_gateway_id, sub_resource_id, function_arn)
-    self.deploy(rest_api_gateway_id)
-    print(self.get_endpoint(rest_api_gateway_id, function_arn))
+    rest_api_gateway_id = self.__make_rest_api_gateway(self.config["aws"]["apigateway"]["rest_api_gateway_name"])
+    root_resource_id = self.__get_root_resource(rest_api_gateway_id)
+    sub_resource_id = self.__create_sub_resource(rest_api_gateway_id, root_resource_id)
+    self.__put_method(rest_api_gateway_id, sub_resource_id)
+    self.__put_integration(rest_api_gateway_id, sub_resource_id, function_arn)
+    self.__deploy(rest_api_gateway_id)
+    print(self.__get_endpoint(rest_api_gateway_id, function_arn))
 
-  def get_endpoint(self, rest_api_gateway_id, function_arn):
+  def __get_endpoint(self, rest_api_gateway_id, function_arn):
     function_name = function_arn.split(":")[-1]
     endpoint = "http://localhost:4566/restapis/{}/test/_user_request_/{}".format(rest_api_gateway_id, function_name)
     return endpoint
 
-  def make_rest_api_gateway(self, name):
+  def __make_rest_api_gateway(self, name):
     response = self.client.create_rest_api(name=name)
     if response['ResponseMetadata']['HTTPStatusCode'] >= 400:
       raise Exception(response)
     return response['id']
 
-  def get_root_resource(self, restapi_gateway_id):
+  def __get_root_resource(self, restapi_gateway_id):
     response = self.client.get_resources(restApiId=restapi_gateway_id)
     if response['ResponseMetadata']['HTTPStatusCode'] >= 400:
       raise Exception(response)
@@ -117,18 +117,18 @@ class APIGatewayCreater(AWSClient):
           return item['id']
     return None
 
-  def create_sub_resource(self, resource_id, root_resource_id):
+  def __create_sub_resource(self, resource_id, root_resource_id):
     response = self.client.create_resource(parentId=root_resource_id, restApiId=resource_id, pathPart="{proxy+}")
     if response['ResponseMetadata']['HTTPStatusCode'] >= 400:
       raise Exception(response)
     return response['id']
 
-  def put_method(self, gateway_id, resource_id):
+  def __put_method(self, gateway_id, resource_id):
     response = self.client.put_method(restApiId=gateway_id, resourceId=resource_id, httpMethod="ANY", authorizationType='None')
     if response['ResponseMetadata']['HTTPStatusCode'] >= 400:
       raise Exception(response)
 
-  def put_integration(self, rest_api_gateway_id, resource_id, function_arn):
+  def __put_integration(self, rest_api_gateway_id, resource_id, function_arn):
     uri_template = "arn:aws:apigateway:{}:lambda:path/2015-03-31/functions/{}/invocations"
     apigateway_config = self.config["aws"]["apigateway"]
     param = { "restApiId" :rest_api_gateway_id, "resourceId" : resource_id }
@@ -140,7 +140,7 @@ class APIGatewayCreater(AWSClient):
     if response['ResponseMetadata']['HTTPStatusCode'] >= 400:
       raise Exception(response)
 
-  def deploy(self, restapi_gateway_id):
+  def __deploy(self, restapi_gateway_id):
     response = self.client.create_deployment(restApiId=restapi_gateway_id, stageName=self.config["aws"]["apigateway"]["stage_name"])
     if response['ResponseMetadata']['HTTPStatusCode'] >= 400:
       raise Exception(response)
