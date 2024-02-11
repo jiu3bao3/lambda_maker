@@ -1,0 +1,17 @@
+aws:
+  region: "ap-northeast-1"
+  endpoint_url: "http://localhost:4566"
+  access_key_id: "dummy"
+  secret_access_key: "dummy"
+  lambda:
+    runtime: "python3.11"
+    role: "arn:aws:iam::000000000000:role/lambda-role"
+    handler: "mock.hello"
+    source_dir: "resource"
+    override: True
+  apigateway:
+    rest_api_gateway_name: "mock"
+    http_method: "ANY"
+    type: "AWS_PROXY"
+    integration_http_method: "ANY"
+    stage_name: "TEST"
