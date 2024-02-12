@@ -40,7 +40,6 @@ class LambdaCreater(AWSClient):
         self.client.delete_function(FunctionName=name)
       else:
         raise Exception("Function {} already exists!".format(name))
-
     param = { "Publish" : True }
     param["Runtime"] = lambda_config["runtime"]
     param["Role"] = lambda_config["role"]
@@ -72,12 +71,12 @@ class LambdaCreater(AWSClient):
 
   def __compress_source(self):
     directory = self.config["aws"]["lambda"]["source_dir"]
-    source_path = os.path.join(directory, "{}.py".format(self.module_name()))
     data = None
     with tempfile.TemporaryDirectory() as tmpdir:
       zip_path = os.path.join(tmpdir, "lambda.zip")
       with ZipFile(zip_path, 'w') as zip:
-        zip.write(source_path, "{}.py".format(self.module_name()))
+        for entry in os.listdir(directory):
+          zip.write(os.path.join(directory, entry), entry)
       with open(zip_path, 'rb') as f:
         data = f.read()
     return data
@@ -124,7 +123,8 @@ class APIGatewayCreater(AWSClient):
     return response['id']
 
   def __put_method(self, gateway_id, resource_id):
-    response = self.client.put_method(restApiId=gateway_id, resourceId=resource_id, httpMethod="ANY", authorizationType='None')
+    param = { "restApiId" : gateway_id, "resourceId" : resource_id, "httpMethod" : "ANY", "authorizationType" : 'None' }
+    response = self.client.put_method(**param)
     if response['ResponseMetadata']['HTTPStatusCode'] >= 400:
       raise Exception(response)
 
@@ -141,7 +141,8 @@ class APIGatewayCreater(AWSClient):
       raise Exception(response)
 
   def __deploy(self, restapi_gateway_id):
-    response = self.client.create_deployment(restApiId=restapi_gateway_id, stageName=self.config["aws"]["apigateway"]["stage_name"])
+    param = { "restApiId" : restapi_gateway_id, "stageName" : self.config["aws"]["apigateway"]["stage_name"] }
+    response = self.client.create_deployment(**param)
     if response['ResponseMetadata']['HTTPStatusCode'] >= 400:
       raise Exception(response)
 
